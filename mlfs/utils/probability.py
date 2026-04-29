@@ -23,5 +23,5 @@ def gaussian_pdf(X: NDArray, mean: NDArray, var: NDArray) -> NDArray:
     """
     eps = 1e-9  # avoid division by zero
     coeff = 1.0 / np.sqrt(2.0 * np.pi * var + eps)
-    exponent = np.exp(-(X - mean) ** 2 / (2 * var + eps))
-    return coeff * exponent
+    exponent = np.exp(-((X - mean) ** 2) / (2 * var + eps))
+    return np.array(coeff * exponent)
