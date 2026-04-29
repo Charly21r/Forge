@@ -1,7 +1,7 @@
 import time
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
-from mlfs.neighbors import KNNClassifier
+from forge.neighbors import KNNClassifier
 
 
 def run():

@@ -28,19 +28,19 @@ jobs:
         pip install -e ".[dev,benchmark]"
     
     - name: Lint with ruff
-      run: ruff check mlfs/ tests/
+      run: ruff check forge/ tests/
       continue-on-error: true
     
     - name: Format check with black
-      run: black --check mlfs/ tests/
+      run: black --check forge/ tests/
       continue-on-error: true
     
     - name: Type check with mypy
-      run: mypy mlfs/
+      run: mypy forge/
       continue-on-error: true
     
     - name: Test with pytest
-      run: pytest --cov=mlfs --cov-report=xml --cov-report=term-missing
+      run: pytest --cov=forge --cov-report=xml --cov-report=term-missing
     
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

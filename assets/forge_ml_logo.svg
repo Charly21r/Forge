@@ -1,0 +1,33 @@
+<svg width="100%" viewBox="0 0 690 410" role="img" xmlns="http://www.w3.org/2000/svg" style="">
+  <title style="fill:rgb(0, 0, 0);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Forge ML logo</title>
+  <desc style="fill:rgb(0, 0, 0);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">Forge ML logo — icon mark and wordmark lockup on dark background</desc>
+
+  <rect x="0" y="0" width="680" height="400" rx="16" fill="#111110" style="fill:rgb(17, 17, 16);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+  <g transform="translate(176, 108)" style="fill:rgb(0, 0, 0);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto">
+
+    <!-- Base plate -->
+    <rect x="0" y="102" width="118" height="20" rx="5" fill="#712B13" style="fill:rgb(113, 43, 19);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <!-- Middle bar -->
+    <rect x="0" y="68" width="86" height="20" rx="5" fill="#D85A30" style="fill:rgb(216, 90, 48);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <!-- Top bar -->
+    <rect x="0" y="34" width="118" height="20" rx="5" fill="#EF7040" style="fill:rgb(239, 112, 64);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <!-- Spine -->
+    <rect x="0" y="34" width="22" height="88" rx="5" fill="#993C1D" style="fill:rgb(153, 60, 29);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+    <!-- Spark cluster -->
+    <circle cx="104" cy="18" r="8" fill="#EF9F27" style="fill:rgb(239, 159, 39);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <circle cx="122" cy="5" r="5.5" fill="#FAC775" opacity="0.85" style="fill:rgb(250, 199, 117);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.85;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <circle cx="86" cy="8" r="4.5" fill="#EF9F27" opacity="0.72" style="fill:rgb(239, 159, 39);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.72;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <circle cx="130" cy="22" r="3" fill="#FAC775" opacity="0.55" style="fill:rgb(250, 199, 117);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.55;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+    <circle cx="96" cy="2" r="2.5" fill="#FAC775" opacity="0.4" style="fill:rgb(250, 199, 117);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:0.4;font-family:&quot;Anthropic Sans&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;font-size:16px;font-weight:400;text-anchor:start;dominant-baseline:auto"/>
+
+    <!-- Wordmark -->
+    <text x="148" y="112" font-family="'Courier New', 'Lucida Console', monospace" font-size="88" font-weight="600" fill="#F1EFE8" letter-spacing="-3" dominant-baseline="auto" style="fill:rgb(241, 239, 232);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Courier New&quot;, &quot;Lucida Console&quot;, monospace;font-size:70.400002px;font-weight:600;text-anchor:start;dominant-baseline:auto">forge</text>
+
+  </g>
+
+  <!-- Subtle tagline -->
+  <text x="340" y="356" text-anchor="middle" font-family="'Courier New', 'Lucida Console', monospace" font-size="13" font-weight="400" fill="#444441" letter-spacing="3" style="fill:rgb(68, 68, 65);stroke:none;color:rgb(0, 0, 0);stroke-width:0.8px;stroke-linecap:butt;stroke-linejoin:miter;opacity:1;font-family:&quot;Courier New&quot;, &quot;Lucida Console&quot;, monospace;font-size:10.4px;font-weight:400;text-anchor:middle;dominant-baseline:auto">ML LIBRARY</text>
+
+</svg>

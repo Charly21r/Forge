@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from mlfs.tree import DecisionTreeClassifier
+from forge.tree import DecisionTreeClassifier
 
 
 def test_fit_predict_numerical():

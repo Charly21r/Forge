@@ -1,7 +1,7 @@
 import time
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier as SkTree
-from mlfs.tree import DecisionTreeClassifier
+from forge.tree import DecisionTreeClassifier
 
 
 def run():

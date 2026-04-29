@@ -2,10 +2,14 @@
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["forge*"]
+
 [project]
-name = "mlfs"
+name = "forge-ml"
 version = "0.1.0"
-description = "Machine Learning From Scratch using NumPy"
+description = "Handbuilt ML library in pure NumPy — sklearn-compatible algorithms in pure NumPy"
 readme = "README.md"
 license = {text = "BSD-3-Clause"}
 authors = [
@@ -19,9 +23,12 @@ keywords = [
     "scikit-learn",
     "decision-tree",
     "knn",
+    "kmeans",
+    "naive-bayes",
     "algorithms",
     "educational",
-    "numpy"
+    "numpy",
+    "from-scratch"
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -68,9 +75,9 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/ml-from-scratch"
-Repository = "https://github.com/yourusername/ml-from-scratch.git"
-"Bug Tracker" = "https://github.com/yourusername/ml-from-scratch/issues"
+Homepage = "https://github.com/Charly21r/forge"
+Repository = "https://github.com/Charly21r/forge.git"
+"Bug Tracker" = "https://github.com/Charly21r/forge/issues"
 
 [tool.ruff]
 line-length = 100
@@ -107,7 +114,7 @@ ignore_errors = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra -q --strict-markers --cov=mlfs --cov-report=term-missing"
+addopts = "-ra -q --strict-markers --cov=forge --cov-report=term-missing"
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
@@ -118,7 +125,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["mlfs"]
+source = ["forge"]
 branch = true
 omit = ["*/tests/*", "*/__main__.py"]
 

@@ -1,5 +1,5 @@
 import numpy as np
-from mlfs.neighbors import KNNClassifier
+from forge.neighbors import KNNClassifier
 
 
 def main():

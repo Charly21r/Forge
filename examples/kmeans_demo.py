@@ -1,5 +1,5 @@
 import numpy as np
-from mlfs.clustering import KMeans
+from forge.clustering import KMeans
 
 def main():
     # Seed for reproducibility

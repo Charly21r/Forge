@@ -1,7 +1,7 @@
 """
-mlfs - Machine Learning From Scratch
+forge — Handbuilt ML library in pure NumPy.
 
-A lightweight library implementing ML algorithms using only NumPy.
+sklearn-compatible machine learning algorithms in pure NumPy.
 """
 
 from .neighbors import KNNClassifier

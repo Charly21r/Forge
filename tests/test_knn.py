@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from sklearn.neighbors import KNeighborsClassifier
 
-from mlfs.neighbors import KNNClassifier
+from forge.neighbors import KNNClassifier
 
 
 # --------------------------

@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from mlfs.clustering.kmeans import KMeans
+from forge.clustering.kmeans import KMeans
 
 
 def make_simple_clusters():

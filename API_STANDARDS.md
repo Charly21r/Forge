@@ -1,6 +1,6 @@
 # API Design Standards
 
-This document outlines the standardized API design patterns used throughout MLFS, modeled after scikit-learn's proven design.
+This document outlines the standardized API design patterns used throughout Forge, modeled after scikit-learn's proven design.
 
 ## Core Principles
 
@@ -9,7 +9,7 @@ This document outlines the standardized API design patterns used throughout MLFS
 All estimators follow this pattern:
 
 ```python
-from mlfs import DecisionTreeClassifier
+from forge import DecisionTreeClassifier
 import numpy as np
 
 # Create estimator
@@ -118,7 +118,7 @@ class MyEstimator:
 Use custom exceptions for specific errors:
 
 ```python
-from mlfs.exceptions import NotFittedError, InvalidMetricError
+from forge.exceptions import NotFittedError, InvalidMetricError
 
 # Check if fitted
 def _check_fitted(self):
@@ -167,7 +167,7 @@ def method_name(self, param1: Type1, param2: Type2 = default) -> ReturnType:
 
     Examples
     --------
-    >>> from mlfs import MyEstimator
+    >>> from forge import MyEstimator
     >>> import numpy as np
     >>> X = np.array([[0], [1], [2]])
     >>> y = np.array([0, 1, 1])
@@ -302,11 +302,11 @@ class Estimator:
 
 ### Adding a New Estimator
 
-1. Create file: `mlfs/module/estimator.py`
+1. Create file: `forge/module/estimator.py`
 2. Inherit from `BaseEstimator`
 3. Implement all required methods
-4. Add to `mlfs/module/__init__.py`
-5. Add to main `mlfs/__init__.py`
+4. Add to `forge/module/__init__.py`
+5. Add to main `forge/__init__.py`
 6. Create corresponding test file
 7. Update documentation
 
@@ -343,7 +343,7 @@ class TestEstimator:
     
     def test_not_fitted_error(self):
         """Test NotFittedError."""
-        from mlfs.exceptions import NotFittedError
+        from forge.exceptions import NotFittedError
         with pytest.raises(NotFittedError):
             Estimator().predict(X_test)
     

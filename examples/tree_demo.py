@@ -1,5 +1,5 @@
 import numpy as np
-from mlfs.tree import DecisionTreeClassifier
+from forge.tree import DecisionTreeClassifier
 
 
 def main():

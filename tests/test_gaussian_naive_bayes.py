@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from sklearn.naive_bayes import GaussianNB as SklearnGaussianNB
 
-from mlfs.naive_bayes import GaussianNB
+from forge.naive_bayes import GaussianNB
 
 
 # --------------------------

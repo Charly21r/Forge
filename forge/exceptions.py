@@ -9,8 +9,8 @@ class NotFittedError(RuntimeError):
 
     Examples
     --------
-    >>> from mlfs import KNNClassifier
-    >>> from mlfs.exceptions import NotFittedError
+    >>> from forge import KNNClassifier
+    >>> from forge.exceptions import NotFittedError
     >>> knn = KNNClassifier()
     >>> try:
     ...     knn.predict([[1, 2]])
@@ -30,8 +30,8 @@ class InvalidMetricError(ValueError):
 
     Examples
     --------
-    >>> from mlfs import KNNClassifier
-    >>> from mlfs.exceptions import InvalidMetricError
+    >>> from forge import KNNClassifier
+    >>> from forge.exceptions import InvalidMetricError
     >>> try:
     ...     KNNClassifier(metric="invalid")
     ... except InvalidMetricError:
