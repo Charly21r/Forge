@@ -109,3 +109,18 @@ class RandomForestClassifier(BaseEstimator, ClassifierMixin):
                 accumulated[:, global_idx] += tree_proba[:, local_idx]
 
         return accumulated / len(self.trees_)
+    
+    @property
+    def feature_importances_(self) -> NDArray:
+        check_is_fitted(self, ["trees_"])
+
+        n_features = max(fi.max() for _, fi in self.trees_) + 1
+        importances = np.zeros(n_features, dtype=float)
+
+        for tree, feature_indices in self.trees_:
+            if tree.feature_importances_ is not None:
+                for local_idx, global_idx in enumerate(feature_indices):
+                    importances[global_idx] += tree.feature_importances_[local_idx]
+
+        total = importances.sum()
+        return importances / total if total > 0 else importances
