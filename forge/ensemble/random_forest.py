@@ -109,7 +109,14 @@ class RandomForestClassifier(BaseEstimator, ClassifierMixin):
                 accumulated[:, global_idx] += tree_proba[:, local_idx]
 
         return accumulated / len(self.trees_)
-    
+
+    def score(self, X: NDArray[Any], y: NDArray[Any] | None) -> float:
+        if y is None:
+            raise ValueError("y cannot be None for RandomForestClassifier")
+
+        y_pred = self.predict(X)
+        return float(np.mean(y_pred == y))
+
     @property
     def feature_importances_(self) -> NDArray:
         check_is_fitted(self, ["trees_"])
