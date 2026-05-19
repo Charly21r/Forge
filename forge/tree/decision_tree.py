@@ -158,13 +158,12 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
         y = np.asarray(y)
         order = np.argsort(x, kind="mergesort")
         x = x[order]
-        classes, y_enc = np.unique(y[order], return_inverse=True)
-        K = len(classes)
+        y_enc = np.searchsorted(self.classes_, y[order])  # assumes self.classes_ is sorted
         N = len(x)
         if N <= 1:
             return None, float(np.inf)
         parent_counts = np.bincount(y_enc, minlength=self.n_classes_)
-        prefix = np.zeros((N + 1, K), dtype=int)
+        prefix = np.zeros((N + 1, self.n_classes_), dtype=int)
         for i in range(1, N + 1):
             prefix[i] = prefix[i - 1]
             prefix[i, y_enc[i - 1]] += 1
