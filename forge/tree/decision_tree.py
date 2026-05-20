@@ -158,7 +158,8 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
         y = np.asarray(y)
         order = np.argsort(x, kind="mergesort")
         x = x[order]
-        y_enc = np.searchsorted(self.classes_, y[order])  # assumes self.classes_ is sorted
+        assert self.classes_ is not None
+        y_enc = np.searchsorted(self.classes_, y[order])
         N = len(x)
         if N <= 1:
             return None, float(np.inf)
