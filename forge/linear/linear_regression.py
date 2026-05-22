@@ -56,9 +56,7 @@ class LinearRegression(BaseEstimator, RegressorMixin):
         if self.alpha < 0:
             raise ValueError(f"alpha must be non-negative, got {self.alpha}")
         if self.solver not in _VALID_SOLVERS:
-            raise ValueError(
-                f"solver must be one of {_VALID_SOLVERS}, got {self.solver!r}"
-            )
+            raise ValueError(f"solver must be one of {_VALID_SOLVERS}, got {self.solver!r}")
 
         X, y = check_X_y(X, y)
 

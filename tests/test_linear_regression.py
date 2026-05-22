@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from sklearn.linear_model import LinearRegression as SklearnLinearRegression
+from sklearn.linear_model import Ridge as SklearnRidge
 
 from forge.exceptions import NotFittedError
 from forge.linear import LinearRegression
@@ -111,3 +112,71 @@ def test_matches_sklearn(random_dataset, fit_intercept):
     np.testing.assert_allclose(model.coef_, sk.coef_, atol=1e-8)
     np.testing.assert_allclose(model.intercept_, sk.intercept_, atol=1e-8)
     np.testing.assert_allclose(model.predict(X), sk.predict(X), atol=1e-8)
+
+
+# --------------------------
+# Ridge (alpha > 0)
+# --------------------------
+@pytest.mark.parametrize("fit_intercept", [True, False])
+@pytest.mark.parametrize("alpha", [0.1, 1.0, 10.0])
+def test_ridge_matches_sklearn(random_dataset, fit_intercept, alpha):
+    X, y = random_dataset
+    model = LinearRegression(alpha=alpha, fit_intercept=fit_intercept).fit(X, y)
+    sk = SklearnRidge(alpha=alpha, fit_intercept=fit_intercept, solver="cholesky").fit(X, y)
+
+    np.testing.assert_allclose(model.coef_, sk.coef_, atol=1e-8)
+    np.testing.assert_allclose(model.intercept_, sk.intercept_, atol=1e-8)
+
+
+def test_ridge_shrinks_coefficients(random_dataset):
+    X, y = random_dataset
+    ols = LinearRegression().fit(X, y)
+    ridge = LinearRegression(alpha=10.0).fit(X, y)
+    assert np.linalg.norm(ridge.coef_) < np.linalg.norm(ols.coef_)
+
+
+def test_ridge_large_alpha_drives_coef_to_zero(random_dataset):
+    X, y = random_dataset
+    model = LinearRegression(alpha=1e10).fit(X, y)
+    np.testing.assert_allclose(model.coef_, 0.0, atol=1e-3)
+    assert model.intercept_ == pytest.approx(float(y.mean()), abs=1e-3)
+
+
+def test_negative_alpha_raises(random_dataset):
+    X, y = random_dataset
+    with pytest.raises(ValueError, match="alpha must be non-negative"):
+        LinearRegression(alpha=-0.5).fit(X, y)
+
+
+# --------------------------
+# Gradient descent solver
+# --------------------------
+@pytest.mark.parametrize("fit_intercept", [True, False])
+def test_gd_matches_closed_form_ols(random_dataset, fit_intercept):
+    X, y = random_dataset
+    closed = LinearRegression(fit_intercept=fit_intercept).fit(X, y)
+    gd = LinearRegression(
+        solver="gd",
+        fit_intercept=fit_intercept,
+        learning_rate=0.05,
+        max_iter=20000,
+        tol=1e-12,
+    ).fit(X, y)
+    np.testing.assert_allclose(gd.coef_, closed.coef_, atol=1e-3)
+    np.testing.assert_allclose(gd.intercept_, closed.intercept_, atol=1e-3)
+
+
+def test_gd_matches_closed_form_ridge(random_dataset):
+    X, y = random_dataset
+    closed = LinearRegression(alpha=1.0).fit(X, y)
+    gd = LinearRegression(
+        solver="gd", alpha=1.0, learning_rate=0.05, max_iter=20000, tol=1e-12
+    ).fit(X, y)
+    np.testing.assert_allclose(gd.coef_, closed.coef_, atol=1e-3)
+    np.testing.assert_allclose(gd.intercept_, closed.intercept_, atol=1e-3)
+
+
+def test_invalid_solver_raises(random_dataset):
+    X, y = random_dataset
+    with pytest.raises(ValueError, match="solver must be one of"):
+        LinearRegression(solver="bogus").fit(X, y)  # type: ignore[arg-type]
