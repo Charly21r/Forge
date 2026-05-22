@@ -88,7 +88,7 @@ def test_y_none_raises():
 def test_X_y_shape_mismatch_raises():
     X = np.array([[1.0], [2.0], [3.0]])
     y = np.array([1.0, 2.0])
-    with pytest.raises(ValueError, match="y cannot be None for LinearRegression"):
+    with pytest.raises(ValueError, match="same number of samples"):
         LinearRegression().fit(X, y)
 
 
