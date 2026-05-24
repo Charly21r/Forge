@@ -4,6 +4,29 @@ import numpy as np
 from numpy.typing import NDArray
 
 
+def sigmoid(z: NDArray) -> NDArray:
+    """Numerically stable logistic sigmoid, applied elementwise.
+
+    Parameters
+    ----------
+    z : array-like
+        Input array.
+
+    Returns
+    -------
+    out : ndarray
+        ``1 / (1 + exp(-z))`` computed without overflow for large ``|z|``.
+    """
+    z = np.asarray(z)
+    out = np.empty_like(z, dtype=np.float64)
+    pos = z >= 0
+    neg = ~pos
+    out[pos] = 1.0 / (1.0 + np.exp(-z[pos]))
+    exp_z = np.exp(z[neg])
+    out[neg] = exp_z / (1.0 + exp_z)
+    return out
+
+
 def gaussian_pdf(X: NDArray, mean: NDArray, var: NDArray) -> NDArray:
     """Gaussian probability density function.
 
