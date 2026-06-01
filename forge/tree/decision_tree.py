@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from dataclasses import dataclass
 from itertools import combinations
 from typing import Any
@@ -8,7 +9,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..base.base_estimator import BaseEstimator
-from ..base.mixins import ClassifierMixin
+from ..base.mixins import ClassifierMixin, RegressorMixin
 from ..utils.validation import check_array, check_is_fitted, check_X_y
 
 
@@ -29,164 +30,60 @@ class Node:
     alpha_node: float = np.inf
     node_risk: float = 0.0
 
+    value: float | None = None  # For the Regressor
+
     def is_leaf(self) -> bool:
         return self.left is None and self.right is None
 
 
-class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
-    """CART Decision Tree implementation from scratch."""
+class _BaseDecisionTree(BaseEstimator):
+
+    # Hyperparameters
+    max_depth: int | None
+    min_samples_split: int
+    min_samples_leaf: int
+    min_impurity_decrease: float
+
+    # Fitted attributes — set in fit(), declared here so mypy sees them on the base
+    tree: Node | None
+    n_features_: int
+    n_samples_total_: int
+    feature_importances_: NDArray[Any] | None
 
     def __init__(
         self,
         *,
-        criterion: str = "gini",
-        max_depth: int | None = None,
-        min_samples_split: int = 2,
-        min_samples_leaf: int = 1,
-        min_impurity_decrease: float = 0.0,
+        max_depth: int | None,
+        min_samples_split: int,
+        min_samples_leaf: int,
+        min_impurity_decrease: float,
     ) -> None:
-        if criterion not in {"gini", "entropy"}:
-            raise ValueError("criterion must be 'gini' or 'entropy'")
+        self.max_depth = max_depth
+        self.min_samples_split = min_samples_split
+        self.min_samples_leaf = min_samples_leaf
+        self.min_impurity_decrease = min_impurity_decrease
 
-        self.criterion: str = criterion
-        self.max_depth: int | None = max_depth
-        self.min_samples_split: int = min_samples_split
-        self.min_samples_leaf: int = min_samples_leaf
-        self.min_impurity_decrease: float = min_impurity_decrease
+    @abstractmethod
+    def _node_impurity(self, y: NDArray[np.int_]) -> float:
+        pass
 
-        self.classes_: NDArray[Any] | None = None
-        self.n_classes_: int = 0
-        self.n_features_: int = 0
-        self.n_samples_total_: int = 0
-        self.tree: Node | None = None
-        self.feature_importances_: NDArray[Any] | None = None
+    @abstractmethod
+    def _node_risk(self, y: NDArray, n_total: int) -> float:
+        pass
 
-    def fit(self, X: NDArray[Any], y: NDArray[Any] | None) -> DecisionTreeClassifier:
-        if y is None:
-            raise ValueError("y cannot be None for DecisionTreeClassifier")
+    @abstractmethod
+    def configure_leaf(self, node: Node, y: NDArray[Any]) -> None:
+        pass
 
-        X, y = check_X_y(X, y)
+    @abstractmethod
+    def _is_pure(self, y: NDArray[Any]) -> bool:
+        pass
 
-        self.classes_, y_enc = np.unique(y, return_inverse=True)
-        self.n_classes_ = len(self.classes_)
-        self.n_features_ = X.shape[1]
-        self.n_samples_total_ = X.shape[0]
-
-        self.feature_importances_ = np.zeros(self.n_features_, dtype=float)
-
-        idx = np.arange(X.shape[0])
-        self.tree = self._build(X, y_enc, idx, depth=0)
-
-        self._compute_feature_importances(self.tree)
-        self._normalize_feature_importances()
-
-        return self
-
-    def predict(self, X: NDArray[Any]) -> NDArray[Any]:
-        check_is_fitted(self, ["tree", "classes_"])
-        X = check_array(X)
-
-        proba: NDArray[np.float64] = self.predict_proba(X)
-        y_pred_idx: NDArray[np.int64] = np.argmax(proba, axis=1)
-
-        assert self.classes_ is not None
-        classes: NDArray[np.int64] = self.classes_
-        return classes[y_pred_idx]
-
-    def predict_proba(self, X: NDArray[Any]) -> np.ndarray:
-        check_is_fitted(self, ["tree", "classes_"])
-        X = check_array(X)
-        out = np.zeros((X.shape[0], self.n_classes_), dtype=float)
-        for i in range(X.shape[0]):
-            node = self.tree
-            while node is not None and not node.is_leaf():
-                if node.is_categorical:
-                    if (
-                        node.feature is not None
-                        and node.threshold is not None
-                        and X[i, node.feature] in node.threshold
-                    ):
-                        node = node.left
-                    else:
-                        node = node.right
-                else:
-                    if (
-                        node.feature is not None
-                        and node.threshold is not None
-                        and X[i, node.feature] < node.threshold
-                    ):
-                        node = node.left
-                    else:
-                        node = node.right
-            if node is not None and node.proba is not None:
-                out[i] = node.proba
-            else:
-                out[i] = np.zeros(self.n_classes_, dtype=float)
-        return out
-
-    def score(self, X: NDArray[Any], y: NDArray[Any] | None) -> float:
-        if y is None:
-            raise ValueError("y cannot be None for DecisionTreeClassifier")
-
-        y_pred = self.predict(X)
-        return float(np.mean(y_pred == y))
-
-    def _gini(self, counts: NDArray[np.int_]) -> float:
-        total: int = int(counts.sum())
-        if total == 0:
-            return 0.0
-        p = counts / total
-        return float(1.0 - np.sum(p * p))
-
-    def _entropy(self, counts: NDArray[np.int_]) -> float:
-        total: int = int(counts.sum())
-        if total == 0:
-            return 0.0
-        p = counts / total
-        p = p[p > 0]
-        return float(-np.sum(p * np.log2(p)))
-
-    def _impurity(self, counts: NDArray[np.int_]) -> float:
-        if self.criterion == "gini":
-            return self._gini(counts)
-        return self._entropy(counts)
-
+    @abstractmethod
     def _best_split_one_feature_numerical(
         self, x: NDArray[Any], y: NDArray[Any]
     ) -> tuple[float | None, float]:
-        x = np.asarray(x)
-        y = np.asarray(y)
-        order = np.argsort(x, kind="mergesort")
-        x = x[order]
-        assert self.classes_ is not None
-        y_enc = np.searchsorted(self.classes_, y[order])
-        N = len(x)
-        if N <= 1:
-            return None, float(np.inf)
-        parent_counts = np.bincount(y_enc, minlength=self.n_classes_)
-        prefix = np.zeros((N + 1, self.n_classes_), dtype=int)
-        for i in range(1, N + 1):
-            prefix[i] = prefix[i - 1]
-            prefix[i, y_enc[i - 1]] += 1
-        best_t: float | None = None
-        best_after_imp: float = float(np.inf)
-        for i in range(1, N):
-            if x[i - 1] == x[i]:
-                continue
-            t = (x[i - 1] + x[i]) / 2
-            n_left = i
-            n_right = N - i
-            left_counts = prefix[i]
-            right_counts = parent_counts - left_counts
-            if n_left == 0 or n_right == 0:
-                continue
-            left_imp = self._impurity(left_counts)
-            right_imp = self._impurity(right_counts)
-            weighted_after = (n_left / N) * left_imp + (n_right / N) * right_imp
-            if weighted_after < best_after_imp:
-                best_after_imp = weighted_after
-                best_t = t
-        return best_t, best_after_imp
+        pass
 
     def _best_split_one_feature_categorical(
         self, x: NDArray[Any], y: NDArray[Any]
@@ -200,14 +97,12 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
         for r in range(1, K):
             for subset in combinations(range(K), r):
                 mask_left = np.isin(x_enc, subset)
-                left_counts = np.bincount(y[mask_left], minlength=self.n_classes_)
-                right_counts = np.bincount(y[~mask_left], minlength=self.n_classes_)
                 n_left = mask_left.sum()
                 n_right = (~mask_left).sum()
                 if n_left < self.min_samples_leaf or n_right < self.min_samples_leaf:
                     continue
-                left_imp = self._impurity(left_counts)
-                right_imp = self._impurity(right_counts)
+                left_imp = self._node_impurity(y[mask_left])
+                right_imp = self._node_impurity(y[~mask_left])
                 N = n_left + n_right
                 weighted_after = (n_left / N) * left_imp + (n_right / N) * right_imp
                 if weighted_after < best_after_imp:
@@ -242,39 +137,34 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
     def _build(
         self, X: NDArray[Any], y: NDArray[Any], idx: NDArray[np.int_], depth: int = 0
     ) -> Node:
+
         node = Node(depth=depth, n_samples=idx.size)
-        counts = np.bincount(y[idx], minlength=self.n_classes_)
-        node.proba = (
-            counts / counts.sum() if counts.sum() > 0 else np.zeros(self.n_classes_, dtype=float)
-        )
-        node.label = (
-            int(np.argmax(node.proba)) if node.proba is not None and node.proba.size > 0 else None
-        )
-        node.impurity = self._impurity(counts)
-        n_misclassified = counts.sum() - counts.max() if counts.size > 0 else 0
-        node.node_risk = (
-            float(n_misclassified) / float(self.n_samples_total_)
-            if self.n_samples_total_ > 0
-            else 0.0
-        )
+        node.impurity = self._node_impurity(y[idx])
+        node.node_risk = self._node_risk(y[idx], self.n_samples_total_)
+        self.configure_leaf(node, y[idx])
+
         if (
             (self.max_depth is not None and depth >= self.max_depth)
             or idx.size < self.min_samples_split
-            or counts.max() == counts.sum()
+            or self._is_pure(y[idx])
         ):
             node.subtree_leaves = 1
             node.subtree_risk = node.node_risk
             return node
+
         best_feat, best_t, best_imp = self._best_split(X[idx], y[idx])
+
         if best_feat is None:
             node.subtree_leaves = 1
             node.subtree_risk = node.node_risk
             return node
+
         gain = node.impurity - best_imp
         if gain < self.min_impurity_decrease:
             node.subtree_leaves = 1
             node.subtree_risk = node.node_risk
             return node
+
         if np.issubdtype(X[idx, best_feat].dtype, np.number):
             mask_left = X[idx, best_feat] <= best_t
         else:
@@ -283,12 +173,14 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
             else:
                 mask_left = np.zeros_like(X[idx, best_feat], dtype=bool)
             node.is_categorical = True
+
         left_idx = idx[mask_left]
         right_idx = idx[~mask_left]
         if left_idx.size < self.min_samples_leaf or right_idx.size < self.min_samples_leaf:
             node.subtree_leaves = 1
             node.subtree_risk = node.node_risk
             return node
+
         node.feature = int(best_feat)
         node.threshold = best_t
         node.left = self._build(X, y, left_idx, depth + 1)
@@ -299,10 +191,31 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
         node.subtree_risk = (node.left.subtree_risk if node.left else 0.0) + (
             node.right.subtree_risk if node.right else 0.0
         )
+
         if node.subtree_leaves - 1 == 0:
             node.alpha_node = np.inf
         else:
             node.alpha_node = (node.node_risk - node.subtree_risk) / (node.subtree_leaves - 1)
+        return node
+
+    def _traverse(self, X: NDArray) -> Node | None:
+        node = self.tree
+        while node is not None and not node.is_leaf():
+            if node.is_categorical:
+                go_left = (
+                    node.feature is not None
+                    and node.threshold is not None
+                    and X[node.feature] in node.threshold
+                )
+            else:
+                go_left = (
+                    node.feature is not None
+                    and node.threshold is not None
+                    and X[node.feature] < node.threshold
+                )
+
+            node = node.left if go_left else node.right
+
         return node
 
     def _update_subtree_stats(self, node: Node | None) -> None:
@@ -396,3 +309,308 @@ class DecisionTreeClassifier(BaseEstimator, ClassifierMixin):
             self._print_node(node.left, indent + "  ")
         if node.right is not None:
             self._print_node(node.right, indent + "  ")
+
+
+class DecisionTreeClassifier(ClassifierMixin, _BaseDecisionTree):
+    """CART Decision Tree Classifier implementation from scratch."""
+
+    def __init__(
+        self,
+        *,
+        criterion: str = "gini",
+        max_depth: int | None = None,
+        min_samples_split: int = 2,
+        min_samples_leaf: int = 1,
+        min_impurity_decrease: float = 0.0,
+    ) -> None:
+        if criterion not in {"gini", "entropy"}:
+            raise ValueError("criterion must be 'gini' or 'entropy'")
+
+        self.criterion: str = criterion
+        super().__init__(
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            min_impurity_decrease=min_impurity_decrease,
+        )
+
+        self.classes_: NDArray[Any] | None = None
+        self.n_classes_: int = 0
+        self.n_features_: int = 0
+        self.n_samples_total_: int = 0
+        self.tree: Node | None = None
+        self.feature_importances_: NDArray[Any] | None = None
+
+    def _node_impurity(self, y: NDArray[Any]) -> float:
+        counts = np.bincount(y, minlength=self.n_classes_)
+
+        if self.criterion == "gini":
+            return self._gini(counts)
+        return self._entropy(counts)
+
+    def _node_risk(self, y: NDArray[Any], n_total: int) -> float:
+        counts = np.bincount(y, minlength=self.n_classes_)
+        n_misclassified = counts.sum() - counts.max() if counts.size > 0 else 0
+        return float(n_misclassified / n_total)
+
+    def configure_leaf(self, node: Node, y: NDArray[Any]) -> None:
+        counts = np.bincount(y, minlength=self.n_classes_)
+        node.proba = (
+            counts / counts.sum() if counts.sum() > 0 else np.zeros(self.n_classes_, dtype=float)
+        )
+        node.label = (
+            int(np.argmax(node.proba)) if node.proba is not None and node.proba.size > 0 else None
+        )
+        node.value = node.label
+
+    def _is_pure(self, y: NDArray[Any]) -> bool:
+        return self._node_impurity(y) == 0
+
+    def fit(self, X: NDArray[Any], y: NDArray[Any] | None) -> DecisionTreeClassifier:
+        if y is None:
+            raise ValueError("y cannot be None for DecisionTreeClassifier")
+
+        X, y = check_X_y(X, y)
+
+        self.classes_, y_enc = np.unique(y, return_inverse=True)
+        self.n_classes_ = len(self.classes_)
+        self.n_features_ = X.shape[1]
+        self.n_samples_total_ = X.shape[0]
+
+        self.feature_importances_ = np.zeros(self.n_features_, dtype=float)
+
+        idx = np.arange(X.shape[0])
+        self.tree = self._build(X, y_enc, idx, depth=0)
+
+        self._compute_feature_importances(self.tree)
+        self._normalize_feature_importances()
+
+        return self
+
+    def predict(self, X: NDArray[Any]) -> NDArray[Any]:
+        check_is_fitted(self, ["tree", "classes_"])
+        X = check_array(X)
+
+        proba: NDArray[np.float64] = self.predict_proba(X)
+        y_pred_idx: NDArray[np.int64] = np.argmax(proba, axis=1)
+
+        assert self.classes_ is not None
+        classes: NDArray[np.int64] = self.classes_
+        return classes[y_pred_idx]
+
+    def predict_proba(self, X: NDArray[Any]) -> np.ndarray:
+        check_is_fitted(self, ["tree", "classes_"])
+        X = check_array(X)
+        out = np.zeros((X.shape[0], self.n_classes_), dtype=float)
+
+        for i in range(X.shape[0]):
+            node = self._traverse(X[i])
+
+            if node is not None and node.proba is not None:
+                out[i] = node.proba
+            else:
+                out[i] = np.zeros(self.n_classes_, dtype=float)
+
+        return out
+
+    def score(self, X: NDArray[Any], y: NDArray[Any] | None) -> float:
+        if y is None:
+            raise ValueError("y cannot be None for DecisionTreeClassifier")
+
+        y_pred = self.predict(X)
+        return float(np.mean(y_pred == y))
+
+    def _gini(self, counts: NDArray[np.int_]) -> float:
+        total: int = int(counts.sum())
+        if total == 0:
+            return 0.0
+        p = counts / total
+        return float(1.0 - np.sum(p * p))
+
+    def _entropy(self, counts: NDArray[np.int_]) -> float:
+        total: int = int(counts.sum())
+        if total == 0:
+            return 0.0
+        p = counts / total
+        p = p[p > 0]
+        return float(-np.sum(p * np.log2(p)))
+
+    def _impurity(self, counts: NDArray[np.int_]) -> float:
+        if self.criterion == "gini":
+            return self._gini(counts)
+        return self._entropy(counts)
+
+    def _best_split_one_feature_numerical(
+        self, x: NDArray[Any], y: NDArray[Any]
+    ) -> tuple[float | None, float]:
+        x = np.asarray(x)
+        y = np.asarray(y)
+        order = np.argsort(x, kind="mergesort")
+        x = x[order]
+        y_enc = y[order]
+        N = len(x)
+        if N <= 1:
+            return None, float(np.inf)
+        parent_counts = np.bincount(y_enc, minlength=self.n_classes_)
+        prefix = np.zeros((N + 1, self.n_classes_), dtype=int)
+        for i in range(1, N + 1):
+            prefix[i] = prefix[i - 1]
+            prefix[i, y_enc[i - 1]] += 1
+        best_t: float | None = None
+        best_after_imp: float = float(np.inf)
+        for i in range(1, N):
+            if x[i - 1] == x[i]:
+                continue
+            t = (x[i - 1] + x[i]) / 2
+            n_left = i
+            n_right = N - i
+            left_counts = prefix[i]
+            right_counts = parent_counts - left_counts
+            if n_left == 0 or n_right == 0:
+                continue
+            left_imp = self._impurity(left_counts)
+            right_imp = self._impurity(right_counts)
+            weighted_after = (n_left / N) * left_imp + (n_right / N) * right_imp
+            if weighted_after < best_after_imp:
+                best_after_imp = weighted_after
+                best_t = t
+        return best_t, best_after_imp
+
+
+class DecisionTreeRegressor(RegressorMixin, _BaseDecisionTree):
+    """CART Decision Tree Regressor"""
+
+    def __init__(
+        self,
+        *,
+        criterion: str = "mse",
+        max_depth: int | None = None,
+        min_samples_split: int = 2,
+        min_samples_leaf: int = 1,
+        min_impurity_decrease: float = 0.0,
+    ) -> None:
+        if criterion not in {"mse", "mae"}:
+            raise ValueError("criterion must be 'mse' or 'mae'")
+
+        self.criterion: str = criterion
+        super().__init__(
+            max_depth=max_depth,
+            min_samples_split=min_samples_split,
+            min_samples_leaf=min_samples_leaf,
+            min_impurity_decrease=min_impurity_decrease,
+        )
+
+        self.n_features_: int = 0
+        self.n_samples_total_: int = 0
+        self.tree: Node | None = None
+        self.feature_importances_: NDArray[Any] | None = None
+
+    def _mse(self, y: NDArray[Any]) -> float:
+        return float(np.var(y))
+
+    def _mae(self, y: NDArray[Any]) -> float:
+        return float(np.mean(np.abs(y - np.median(y))))
+
+    def _node_impurity(self, y: NDArray[Any]) -> float:
+        if self.criterion == "mse":
+            return self._mse(y)
+        return self._mae(y)
+
+    def _node_risk(self, y: NDArray[Any], n_total: int) -> float:
+        if len(y) == 0 or n_total == 0:
+            return 0.0
+        return float(self._node_impurity(y) * len(y) / n_total)
+
+    def _is_pure(self, y: NDArray[Any]) -> bool:
+        return bool(y.max() == y.min())
+
+    def configure_leaf(self, node: Node, y: NDArray[Any]) -> None:
+        node.value = float(np.mean(y)) if self.criterion == "mse" else float(np.median(y))
+
+    def _best_split_one_feature_numerical(
+        self, x: NDArray[Any], y: NDArray[Any]
+    ) -> tuple[float | None, float]:
+        order = np.argsort(x, kind="mergesort")
+        x_s = x[order]
+        y_s = y[order].astype(float)
+        N = len(x_s)
+        if N <= 1:
+            return None, float(np.inf)
+        if self.criterion == "mse":
+            return self._mse_split(x_s, y_s)
+        return self._mae_split(x_s, y_s)
+
+    def _mse_split(self, x_s: NDArray[Any], y_s: NDArray[Any]) -> tuple[float | None, float]:
+        N = len(x_s)
+        sum_total = float(y_s.sum())
+        sum_sq_total = float((y_s**2).sum())
+        sum_left = 0.0
+        sum_sq_left = 0.0
+        best_t: float | None = None
+        best_imp = float(np.inf)
+        for i in range(1, N):
+            sum_left += y_s[i - 1]
+            sum_sq_left += y_s[i - 1] ** 2
+            if x_s[i - 1] == x_s[i]:
+                continue
+            n_left, n_right = i, N - i
+            if n_left < self.min_samples_leaf or n_right < self.min_samples_leaf:
+                continue
+            mse_left = sum_sq_left / n_left - (sum_left / n_left) ** 2
+            sum_right = sum_total - sum_left
+            sum_sq_right = sum_sq_total - sum_sq_left
+            mse_right = sum_sq_right / n_right - (sum_right / n_right) ** 2
+            weighted = (n_left / N) * mse_left + (n_right / N) * mse_right
+            if weighted < best_imp:
+                best_imp = weighted
+                best_t = float((x_s[i - 1] + x_s[i]) / 2)
+        return best_t, best_imp
+
+    def _mae_split(self, x_s: NDArray[Any], y_s: NDArray[Any]) -> tuple[float | None, float]:
+        N = len(x_s)
+        best_t: float | None = None
+        best_imp = float(np.inf)
+        for i in range(1, N):
+            if x_s[i - 1] == x_s[i]:
+                continue
+            n_left, n_right = i, N - i
+            if n_left < self.min_samples_leaf or n_right < self.min_samples_leaf:
+                continue
+            mae_left = float(np.mean(np.abs(y_s[:i] - np.median(y_s[:i]))))
+            mae_right = float(np.mean(np.abs(y_s[i:] - np.median(y_s[i:]))))
+            weighted = (n_left / N) * mae_left + (n_right / N) * mae_right
+            if weighted < best_imp:
+                best_imp = weighted
+                best_t = float((x_s[i - 1] + x_s[i]) / 2)
+        return best_t, best_imp
+
+    def fit(self, X: NDArray[Any], y: NDArray[Any] | None) -> DecisionTreeRegressor:
+        if y is None:
+            raise ValueError("y cannot be None for DecisionTreeRegressor")
+        X, y = check_X_y(X, y)
+        y = y.astype(float)
+        self.n_features_ = X.shape[1]
+        self.n_samples_total_ = X.shape[0]
+        self.feature_importances_ = np.zeros(self.n_features_, dtype=float)
+        self.tree = self._build(X, y, np.arange(X.shape[0]))
+        self._compute_feature_importances(self.tree)
+        self._normalize_feature_importances()
+        return self
+
+    def predict(self, X: NDArray[Any]) -> NDArray[np.float64]:
+        check_is_fitted(self, ["tree"])
+        X = check_array(X)
+        out = np.empty(X.shape[0], dtype=float)
+        for i in range(X.shape[0]):
+            node = self._traverse(X[i])
+            out[i] = float(node.value) if node is not None and node.value is not None else 0.0
+        return out
+
+    def score(self, X: NDArray[Any], y: NDArray[Any] | None) -> float:
+        if y is None:
+            raise ValueError("y cannot be None for DecisionTreeRegressor")
+        y_pred = self.predict(X)
+        y = np.asarray(y, dtype=float)
+        ss_res = float(np.sum((y - y_pred) ** 2))
+        ss_tot = float(np.sum((y - y.mean()) ** 2))
+        return 1.0 - ss_res / ss_tot if ss_tot > 0.0 else 0.0
